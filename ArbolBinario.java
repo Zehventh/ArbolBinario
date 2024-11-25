@@ -1,44 +1,117 @@
+import java.util.ArrayList;
+import java.util.List;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public  class ArbolBinario<T> {
+public class ArbolBinario<T> {
     private Nodo<T>[] nodos;
     private int cursor;
+    private int raiz;
 
+    @SuppressWarnings("unchecked")
     public ArbolBinario() {
-        nodos = new Nodo[25];
+        nodos = new Nodo[100]; // Tamaño inicial del árbol
         for (int i = 0; i < nodos.length; i++) {
             nodos[i] = new Nodo<>();
         }
-        cursor = 0; // Comienza vacío
+        cursor = 0;
+        raiz = -1; // Árbol inicialmente vacío
     }
 
-    public boolean crear(T etiqueta, int padre, boolean esHijoIzquierdo) {
-        if (cursor >= nodos.length || padre >= cursor) {
-            return false; // No hay espacio o el padre no existe
+    public int CREA(T etiqueta, int... hijos) {
+        if (cursor >= nodos.length) {
+            throw new RuntimeException("No hay espacio para más nodos.");
         }
 
-        nodos[cursor].setEtiqueta(etiqueta);
+        int nuevoNodo = cursor++;
+        nodos[nuevoNodo].setEtiqueta(etiqueta);
 
-        if (padre == -1) { // Nodo raíz
-            cursor++;
-            return true;
-        }
+        if (hijos.length > 0) {
+            nodos[nuevoNodo].setHijoMasIzquierdo(hijos[0]);
 
-        if (esHijoIzquierdo) {
-            nodos[padre].setHijoMasIzquierdo(cursor);
-        } else {
-            int actual = nodos[padre].getHijoMasIzquierdo();
-            if (actual == -1) {
-                nodos[padre].setHijoMasIzquierdo(cursor);
-            } else {
-                while (nodos[actual].getHermanoDerecho() != -1) {
-                    actual = nodos[actual].getHermanoDerecho();
-                }
-                nodos[actual].setHermanoDerecho(cursor);
+            for (int i = 0; i < hijos.length - 1; i++) {
+                nodos[hijos[i]].setHermanoDerecho(hijos[i + 1]);
             }
         }
-        cursor++;
-        return true;
+
+        if (raiz == -1) {
+            raiz = nuevoNodo; // Establecer la raíz si es el primer nodo
+        }
+
+        return nuevoNodo;
+    }
+
+    public int getRaiz() {
+        return raiz;
+    }
+
+    public void anula() {
+        cursor = 0;
+        raiz = -1;
+    }
+
+    public int padre(int n) {
+        for (int i = 0; i < cursor; i++) {
+            int hijo = nodos[i].getHijoMasIzquierdo();
+            while (hijo != -1) {
+                if (hijo == n) return i;
+                hijo = nodos[hijo].getHermanoDerecho();
+            }
+        }
+        return -1; // No tiene padre
+    }
+
+    public int hijoMasIzquierdo(int n) {
+        return nodos[n].getHijoMasIzquierdo();
+    }
+
+    public int hermanoDerecho(int n) {
+        return nodos[n].getHermanoDerecho();
+    }
+
+    public T etiqueta(int n) {
+        return nodos[n].getEtiqueta();
+    }
+
+    public List<Integer> ordPrev(int nodo) {
+        List<Integer> resultado = new ArrayList<>();
+        if (nodo == -1) return resultado;
+
+        resultado.add(nodo);
+        int hijo = nodos[nodo].getHijoMasIzquierdo();
+        while (hijo != -1) {
+            resultado.addAll(ordPrev(hijo));
+            hijo = nodos[hijo].getHermanoDerecho();
+        }
+        return resultado;
+    }
+
+    public List<Integer> ordSim(int nodo) {
+        List<Integer> resultado = new ArrayList<>();
+        if (nodo == -1) return resultado;
+
+        int hijo = nodos[nodo].getHijoMasIzquierdo();
+        if (hijo != -1) resultado.addAll(ordSim(hijo));
+        resultado.add(nodo);
+
+        while (hijo != -1) {
+            hijo = nodos[hijo].getHermanoDerecho();
+            if (hijo != -1) resultado.addAll(ordSim(hijo));
+        }
+        return resultado;
+    }
+
+    public List<Integer> ordPos(int nodo) {
+        List<Integer> resultado = new ArrayList<>();
+        if (nodo == -1) return resultado;
+
+        int hijo = nodos[nodo].getHijoMasIzquierdo();
+        while (hijo != -1) {
+            resultado.addAll(ordPos(hijo));
+            hijo = nodos[hijo].getHermanoDerecho();
+        }
+        resultado.add(nodo);
+        return resultado;
     }
 
     public void imprimirArbol() {
@@ -50,6 +123,4 @@ public  class ArbolBinario<T> {
                     nodos[i].getHermanoDerecho());
         }
     }
-
-
 }
